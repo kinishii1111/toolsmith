@@ -2,6 +2,7 @@
 
 > F0b: pacote roda; agente depois. Zero UI — só CLI.
 > F1a: state tipado — `AgentState` com `messages` + `add_messages`.
+> F1b: grafo `from_scratch` roda via StateGraph — 1 nó `reply` (echo se sem `GROQ_API_KEY`, senão ChatGroq). `should_continue`/tools ficam pro F2.
 
 Agente ReAct (LangGraph): não chuta — despacha por cenário.
 
