@@ -1,10 +1,22 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage
 
 from toolsmith.graph_from_scratch import build_graph
+
+
+def _load_env() -> None:
+    """Carrega `.env` na raiz do pacote/repo se existir (POC)."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    # repo root: …/toolsmith/.env (pai de src/)
+    root = Path(__file__).resolve().parents[2]
+    load_dotenv(root / ".env")
 
 
 def _sem_key() -> None:
@@ -17,6 +29,7 @@ def _sem_key() -> None:
 
 
 def main() -> None:
+    _load_env()
     parser = argparse.ArgumentParser(prog="toolsmith")
     parser.add_argument(
         "--cenario",

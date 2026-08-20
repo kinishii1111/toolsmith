@@ -16,6 +16,7 @@ dependencies = [
     "httpx",
     # busca web F2a: ddgs (DuckDuckGo)
     "ddgs",
+    "python-dotenv",
 ]
 
 [project.scripts]
