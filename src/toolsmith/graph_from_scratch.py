@@ -8,7 +8,7 @@ documentado no README — o grafo continua compilando e rodando.
 
 import os
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, SystemMessage
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode
 
@@ -16,6 +16,12 @@ from toolsmith.state import AgentState
 from toolsmith.tools.pesquisa import format_brief, web_search
 
 TOOLS = [web_search, format_brief]
+
+SYSTEM_PROMPT = (
+    "Plantão pesquisa — não invente fatos. Use as tools web_search/format_brief "
+    "para levantar informação e responda citando as URLs (http/https) que as tools "
+    "retornarem. Fonte vazia/stub deixa claro que a busca não trouxe resultado."
+)
 
 
 def _make_agent_node():
@@ -28,7 +34,8 @@ def _make_agent_node():
             llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=key).bind_tools(TOOLS)
 
             def agent(state: AgentState) -> AgentState:
-                return {"messages": [llm.invoke(state["messages"])]}
+                msgs = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
+                return {"messages": [llm.invoke(msgs)]}
 
             return agent
         except Exception:

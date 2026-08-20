@@ -1,8 +1,19 @@
 import argparse
+import os
+import sys
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
 from toolsmith.graph_from_scratch import build_graph
+
+
+def _sem_key() -> None:
+    print(
+        "toolsmith: ouro pesquisa exige GROQ_API_KEY no ambiente (ver .env / README). "
+        "Defina GROQ_API_KEY e rode de novo.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def main() -> None:
@@ -21,9 +32,21 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if not os.getenv("GROQ_API_KEY"):
+        _sem_key()
+
     graph = build_graph()
-    result = graph.invoke({"messages": [HumanMessage(content=args.pergunta)]})
-    print(result["messages"][-1].content)
+    result = graph.invoke(
+        {"messages": [HumanMessage(content=args.pergunta)]},
+        config={"recursion_limit": 20},
+    )
+
+    # resposta final = última AIMessage sem tool_calls
+    final = next(
+        (m.content for m in reversed(result["messages"]) if isinstance(m, AIMessage) and not m.tool_calls),
+        result["messages"][-1].content,
+    )
+    print(final)
 
 
 if __name__ == "__main__":
