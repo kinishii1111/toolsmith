@@ -1,6 +1,14 @@
-# ToolSmith — Plantão de fatos
+# ToolSmith — Plantão de fatos — 3 plantões, 1 motor
 
-Agente ReAct (LangGraph): não chuta — despacha **math**, **clima** e **busca**.
+> F0b: pacote roda; agente depois. Zero UI — só CLI.
+
+Agente ReAct (LangGraph): não chuta — despacha por cenário.
+
+| Cenário | Kit (F1) |
+|---------|----------|
+| `pesquisa` | busca · extrair · brief |
+| `chamado` | classificar · base local · rascunho |
+| `lead` | score · tag · reply |
 
 > Em construção (micro-tarefas). Ver `ORDEM.md` na branch `tarefa/*`.
 
@@ -8,17 +16,19 @@ Agente ReAct (LangGraph): não chuta — despacha **math**, **clima** e **busca*
 
 Python · LangGraph · Groq · Open-Meteo · busca web
 
-## Setup (quando existir deps)
+## Setup
 
 ```bash
 cp .env.example .env   # GROQ_API_KEY=
 pip install -e .
-python -m toolsmith "sua pergunta"
+python -m toolsmith
+python -m toolsmith --cenario chamado
+python -m toolsmith --cenario lead
 ```
 
 ## Lema
 
-Copiar → preguiça → melhorar → ser esperto.
+Copiar → preguiça → melhorar → ser esperto. (F0b: engenharia reversa do template → menor diff)
 
 ## Referências (gabarito, não entrega)
 

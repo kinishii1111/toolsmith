@@ -7,7 +7,7 @@ name = "toolsmith"
 version = "0.1.0"
 description = "Plantão de fatos — agente ReAct (LangGraph) que não chuta: despacha math, clima e busca antes de responder."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "langgraph",
