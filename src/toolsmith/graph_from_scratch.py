@@ -31,7 +31,7 @@ def _make_agent_node():
         try:
             from langchain_groq import ChatGroq
 
-            llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=key).bind_tools(TOOLS)
+            llm = ChatGroq(model="openai/gpt-oss-20b", api_key=key).bind_tools(TOOLS)
 
             def agent(state: AgentState) -> AgentState:
                 msgs = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
