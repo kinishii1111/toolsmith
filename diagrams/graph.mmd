@@ -1,0 +1,26 @@
+%% ToolSmith — Plantão de fatos — 3 plantões, 1 motor
+%% StateGraph: AgentState { messages: Annotated[list, add_messages] }
+%% Referência: LangGraph quickstart + template langchain-ai/react-agent
+flowchart TD
+    START([START]) --> agent
+
+    subgraph loop["ReAct loop — agent ↔ tools"]
+        agent["agent<br/>(ChatGroq bind_tools<br/>+ SystemPrompt por cenário)"]
+        should_continue{"should_continue<br/>tool_calls?"}
+        tools["tools<br/>(ToolNode)"]
+        agent --> should_continue
+        should_continue -->|continue| tools
+        tools --> agent
+    end
+
+    should_continue -->|end| END
+
+    classDef kit fill:#f6f6f6,stroke:#333,stroke-dasharray: 4 4
+    subgraph kits["Kits por --cenario"]
+        pesquisa["pesquisa: web_search · format_brief"]
+        chamado["chamado: classify_ticket · search_kb · draft_reply"]
+        lead["lead: score_lead · tag_lead · draft_lead_reply"]
+    end
+    class pesquisa,lead,chamado kit
+
+    %% Mensagem inicial: HumanMessage(pergunta) -> invoke {messages:[...]} recursion_limit 20
