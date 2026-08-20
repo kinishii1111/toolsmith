@@ -1,36 +1,35 @@
-# ORDEM — tarefa/F5a
+# ORDEM — tarefa/F5b
 
 ## Objetivo
 
-Versão **prebuilt** (`create_react_agent` ou equivalente atual LangGraph) para **comparar** com `from_scratch`. Mesmos tools do cenário. CLI flag `--motor scratch|prebuilt` (default scratch).
+Fechar Nível 1 pro currículo: **diagrama Mermaid** do grafo, `examples/demo.md` com **1 ouro por cenário** (traces curtos), README de portfólio (PT + EN curto).
 
 ## Copiar de
 
-- https://langchain-ai.github.io/langgraph/how-tos/create-react-agent/
-- Docs atuais `langgraph.prebuilt` (nome pode ser `create_react_agent`)
-- Tools já em pesquisa/chamado/lead
+- Brief do job (bullets currículo)
+- TEMA: 3 plantões, 1 motor
+- Pastas `diagrams/`, `examples/`
 
 ## Fazer
 
-1. `graph_prebuilt.py`: `build_graph(cenario)` usando prebuilt + mesmos TOOLS/prompt do scratch
-2. CLI: `--motor {scratch,prebuilt}`; scratch = `graph_from_scratch`
-3. README: por que StateGraph from scratch vs prebuilt (2–4 linhas currículo)
+1. `diagrams/graph.mmd` — loop agent ↔ tools → end (Mermaid)
+2. `examples/demo.md` — 3 seções (pesquisa / chamado / lead) pergunta → tools → trecho resposta
+3. README: arquitetura, `.env`, `--cenario`, `--motor`, scratch vs prebuilt, fora de escopo Nível 2+, 1 linha LinkedIn (PT + EN curto)
 4. Sem UI/testes
 
 ## Não fazer
 
-- UI, testes, merge main, Mermaid/demos (F5b)
+- UI, testes, merge main, Nível 2+
 
 ## Pronto quando
 
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git checkout tarefa/F5a && git pull
-python3 -m toolsmith --motor prebuilt --cenario pesquisa "capital do Ceara em 1 frase"
-python3 -m toolsmith --motor scratch --cenario pesquisa "capital do Ceara em 1 frase"
-# ambos respondem sem traceback
+git checkout tarefa/F5b && git pull
+test -f diagrams/graph.mmd && test -f examples/demo.md
+rg -n "Plantão|--cenario|from_scratch" README.md
 ```
 
 ## Tema
 
-1 motor ensinado de 2 jeitos — comparar.
+Plantão de fatos — entrega de currículo.
