@@ -1,40 +1,37 @@
-# ORDEM — tarefa/F1a
+# ORDEM — tarefa/F1b
 
 ## Objetivo
 
-`state.py` tipado com `messages` + reducer (LangGraph/AddableValues). Só estado — sem grafo rodando ainda.
+Grafo **from_scratch** mínimo + CLI aceitando uma pergunta (cenário `pesquisa` default). Ainda sem tools reais — 1 nó LLM **ou** echo controlado que prove o StateGraph rodando.
 
-## Copiar de (engenharia reversa)
+Preferência Nível 1 / preguiça: se Groq/key complicar agora, um nó `reply` que devolve mensagem fixa/eco da pergunta **via StateGraph** (não print solto) já serve — documente no README. Ideal: ChatGroq se `.env` tiver chave.
 
-- Quickstart / ReAct from scratch: TypedDict state com `Annotated[list, add_messages]`
-  - https://docs.langchain.com/oss/python/langgraph/quickstart
-  - https://langchain-ai.github.io/langgraph/how-tos/react-agent-from-scratch-functional/
-- Template: https://github.com/langchain-ai/react-agent (arquivo de state/graph)
-- Pacote já existe em `src/toolsmith/`; `pyproject` já declara langgraph
+## Copiar de
+
+- https://docs.langchain.com/oss/python/langgraph/quickstart (StateGraph + compile + invoke)
+- State já em `toolsmith.state.AgentState`
+- CLI atual: estender para positional `pergunta` opcional
 
 ## Fazer
 
-1. Implementar `src/toolsmith/state.py`:
-   - `AgentState` (ou nome curto) com `messages` usando `add_messages`
-   - Docstring 2 linhas: estado compartilhado dos 3 cenários
-2. Garantir imports resolvem: `from toolsmith.state import …`
-3. Não ligar LLM/tools/grafo nesta tarefa
-4. README: 1 linha “F1a: state tipado”
+1. `graph_from_scratch.py`: `build_graph()` → `StateGraph(AgentState)` com ≥1 nó que lê/escreve `messages`, `compile()`
+2. `cli.py`: `python -m toolsmith "ola"` (e `--cenario`) chama o grafo e imprime a última mensagem
+3. Sem tools ainda; `should_continue` pode ficar pro F2
+4. README: linha F1b
 
 ## Não fazer
 
-- UI, testes, CLI nova, implementar tools, merge main
+- UI, testes, tools pesquisa/chamado/lead, prebuilt completo, merge main
 
 ## Pronto quando
 
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git checkout tarefa/F1a && git pull
-python -c "from toolsmith.state import AgentState; print('F1a ok', AgentState)"
+git checkout tarefa/F1b && git pull
+python3 -m toolsmith "ping"
+# imprime resposta vinda do grafo (não só F0 ok)
 ```
-
-(Ajuste o nome da classe se copiar outro das refs — documente no Resultado do commit.)
 
 ## Tema
 
-3 plantões, 1 motor — estado único.
+1 motor, cenário pesquisa default — loop ainda sem tools.
