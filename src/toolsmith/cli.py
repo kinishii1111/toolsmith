@@ -5,7 +5,8 @@ from pathlib import Path
 
 from langchain_core.messages import AIMessage, HumanMessage
 
-from toolsmith.graph_from_scratch import build_graph
+from toolsmith.graph_from_scratch import build_graph as build_scratch
+from toolsmith.graph_prebuilt import build_graph as build_prebuilt
 
 
 def _load_env() -> None:
@@ -38,6 +39,12 @@ def main() -> None:
         help="cenário: pesquisa | chamado | lead (default: pesquisa)",
     )
     parser.add_argument(
+        "--motor",
+        choices=["scratch", "prebuilt"],
+        default="scratch",
+        help="motor: scratch (StateGraph) | prebuilt (create_react_agent) (default: scratch)",
+    )
+    parser.add_argument(
         "pergunta",
         nargs="?",
         default="ping",
@@ -48,7 +55,10 @@ def main() -> None:
     if not os.getenv("GROQ_API_KEY"):
         _sem_key()
 
-    graph = build_graph(cenario=args.cenario)
+    if args.motor == "prebuilt":
+        graph = build_prebuilt(cenario=args.cenario)
+    else:
+        graph = build_scratch(cenario=args.cenario)
     result = graph.invoke(
         {"messages": [HumanMessage(content=args.pergunta)]},
         config={"recursion_limit": 20},

@@ -8,6 +8,7 @@
 > F3a: kit **chamado** — tools locais `classify_ticket`/`search_kb`/`draft_reply` + KB `kb/*.md` + `build_graph(cenario)` seleciona kit (pesquisa continua funcionando).
 > F3b: ouro **chamado** — system prompt exige severidade + trecho KB + rascunho + `ESCALAR: sim|nao — motivo`; `recursion_limit` no invoke; pesquisa continua ok.
 > F4a: kit **lead** — tools locais `score_lead`/`tag_lead`/`draft_lead_reply` + regras ICP `tools/lead/regras.md` + ouro 1 tacada (qualificar+responder+tag) com `SCORE:` e `TAGS:`.
+> F5a: **scratch vs prebuilt** — `StateGraph` from scratch expõe nós/arestas e `should_continue` (didático, controle total); `create_react_agent` (prebuilt) entrega o mesmo loop ReAct pronto; mesmos TOOLS/prompt, flag `--motor scratch|prebuilt`.
 
 Agente ReAct (LangGraph): não chuta — despacha por cenário.
 
