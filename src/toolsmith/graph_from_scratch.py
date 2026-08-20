@@ -14,10 +14,12 @@ from langgraph.prebuilt import ToolNode
 
 from toolsmith.state import AgentState
 from toolsmith.tools.chamado import classify_ticket, draft_reply, search_kb
+from toolsmith.tools.lead import draft_lead_reply, score_lead, tag_lead
 from toolsmith.tools.pesquisa import format_brief, web_search
 
 TOOLS_PESQUISA = [web_search, format_brief]
 TOOLS_CHAMADO = [classify_ticket, search_kb, draft_reply]
+TOOLS_LEAD = [score_lead, tag_lead, draft_lead_reply]
 # compat: F2 usava TOOLS
 TOOLS = TOOLS_PESQUISA
 
@@ -34,6 +36,14 @@ SYSTEM_PROMPT_CHAMADO = (
     "(ex: `ESCALAR: sim — alta+sem reset ha >24h, exige N2` ou `ESCALAR: nao — contornável via KB`). "
     "Sem match na KB, diga que não há trecho direto."
 )
+SYSTEM_PROMPT_LEAD = (
+    "Plantão lead — não invente; use tools. Pipeline obrigatório em 1 tacada: "
+    "score_lead para 0–100 + motivos (ICP em tools/lead/regras.md: orçamento/urgência/segmento), "
+    "tag_lead para quente|morno|frio e b2b|b2c, draft_lead_reply para rascunho WhatsApp/e-mail curto. "
+    "Na resposta final traga rascunho útil (proposta/call) e termine obrigatoriamente com duas linhas finais: "
+    "`SCORE: <0-100>` e `TAGS: quente|morno|frio, b2b|b2c` "
+    "(ex: `SCORE: 85` + `TAGS: quente, b2b`). Ouro: msg crua → qualificado + resposta + tag."
+)
 # compat
 SYSTEM_PROMPT = SYSTEM_PROMPT_PESQUISA
 
@@ -42,6 +52,8 @@ def _get_tools_and_prompt(cenario: str):
     c = (cenario or "pesquisa").lower()
     if c == "chamado":
         return TOOLS_CHAMADO, SYSTEM_PROMPT_CHAMADO
+    if c == "lead":
+        return TOOLS_LEAD, SYSTEM_PROMPT_LEAD
     return TOOLS_PESQUISA, SYSTEM_PROMPT_PESQUISA
 
 
@@ -86,7 +98,7 @@ def _should_continue(state: AgentState) -> str:
 def build_graph(cenario: str = "pesquisa"):
     """StateGraph(AgentState): agent → (tools | end) → tools → agent.
 
-    Seleciona TOOLS + prompt conforme `cenario` (pesquisa|chamado).
+    Seleciona TOOLS + prompt conforme `cenario` (pesquisa|chamado|lead).
     """
     tools, _ = _get_tools_and_prompt(cenario)
     graph = StateGraph(AgentState)
