@@ -1,53 +1,40 @@
-# ORDEM — tarefa/F0b
+# ORDEM — tarefa/F1a
 
 ## Objetivo
 
-Pacote importável + CLI com `--cenario` (pesquisa|chamado|lead) + `python -m toolsmith` → `ToolSmith F0 ok`. Sem agente ainda.
+`state.py` tipado com `messages` + reducer (LangGraph/AddableValues). Só estado — sem grafo rodando ainda.
 
 ## Copiar de (engenharia reversa)
 
-- Layout pacote: brief `entrada/brief.md` (árvore `src/toolsmith/…`) — adaptar nomes
-- Hatch: `pyproject.toml` já tem `packages = ["src/toolsmith"]`
-- CLI argparse simples: qualquer `__main__` + `cli.py` mínimo (stdlib)
-- Tema travado: 3 cenários, zero UI — job `../TEMA.md`
+- Quickstart / ReAct from scratch: TypedDict state com `Annotated[list, add_messages]`
+  - https://docs.langchain.com/oss/python/langgraph/quickstart
+  - https://langchain-ai.github.io/langgraph/how-tos/react-agent-from-scratch-functional/
+- Template: https://github.com/langchain-ai/react-agent (arquivo de state/graph)
+- Pacote já existe em `src/toolsmith/`; `pyproject` já declara langgraph
 
 ## Fazer
 
-1. Árvore:
-   ```
-   src/toolsmith/
-     __init__.py
-     __main__.py      # chama cli.main
-     cli.py           # argparse: --cenario {pesquisa,chamado,lead}; default pesquisa
-                      # sem args extras: print "ToolSmith F0 ok [<cenario>]"
-     state.py         # stub
-     graph_from_scratch.py / graph_prebuilt.py  # stubs
-     tools/
-       __init__.py
-       pesquisa/__init__.py   # stub
-       chamado/__init__.py    # stub
-       lead/__init__.py       # stub
-   diagrams/.gitkeep
-   examples/.gitkeep
-   ```
-2. README: 3 cenários, zero UI, “F0b: pacote roda; agente depois”; lema copiar/reversão
-3. Sem LangGraph real, sem HTTP, sem deps novas
+1. Implementar `src/toolsmith/state.py`:
+   - `AgentState` (ou nome curto) com `messages` usando `add_messages`
+   - Docstring 2 linhas: estado compartilhado dos 3 cenários
+2. Garantir imports resolvem: `from toolsmith.state import …`
+3. Não ligar LLM/tools/grafo nesta tarefa
+4. README: 1 linha “F1a: state tipado”
 
 ## Não fazer
 
-- UI, testes, merge main, utils/, implementar tools de verdade
+- UI, testes, CLI nova, implementar tools, merge main
 
 ## Pronto quando
 
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git checkout tarefa/F0b && git pull
-pip install -e .
-python -m toolsmith
-python -m toolsmith --cenario chamado
-# ambas imprimem ToolSmith F0 ok …
+git checkout tarefa/F1a && git pull
+python -c "from toolsmith.state import AgentState; print('F1a ok', AgentState)"
 ```
+
+(Ajuste o nome da classe se copiar outro das refs — documente no Resultado do commit.)
 
 ## Tema
 
-3 plantões, 1 motor — esqueleto só.
+3 plantões, 1 motor — estado único.
