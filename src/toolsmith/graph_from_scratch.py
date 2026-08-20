@@ -1,46 +1,69 @@
-"""F1b — grafo from_scratch mínimo: 1 nó que lê/escreve `messages` via StateGraph.
+"""F2a — grafo from_scratch ReAct com loop tool (llm ↔ tools).
 
-Sem tools reais ainda. Se GROQ_API_KEY estiver no ambiente, usa ChatGroq;
-senão, nó `reply` devolve mensagem fixa/eco da pergunta — o importante é provar
-o StateGraph compilado e invocado (não print solto).
+Nós: `agent` (LLM bind tools) → condicional `should_continue` → `tools`
+(ToolNode) → volta pro `agent`. Prefere ChatGroq + ToolNode se GROQ_API_KEY
+existir; senão modo degradado: nó `agent` ecoa a pergunta (sem chamar tools),
+documentado no README — o grafo continua compilando e rodando.
 """
 
 import os
 
 from langchain_core.messages import AIMessage
 from langgraph.graph import StateGraph
+from langgraph.prebuilt import ToolNode
 
 from toolsmith.state import AgentState
+from toolsmith.tools.pesquisa import format_brief, web_search
+
+TOOLS = [web_search, format_brief]
 
 
-def _make_reply_node():
-    """Retorna nó `reply`. Prefere ChatGroq se houver chave; senão eco."""
+def _make_agent_node():
+    """Retorna nó `agent`. Prefere ChatGroq bind tools; senão eco (F2a sem key)."""
     key = os.getenv("GROQ_API_KEY")
     if key:
         try:
             from langchain_groq import ChatGroq
 
-            llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=key)
+            llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=key).bind_tools(TOOLS)
 
-            def reply(state: AgentState) -> AgentState:
-                last = state["messages"][-1].content
-                return {"messages": [AIMessage(content=llm.invoke(last).content)]}
+            def agent(state: AgentState) -> AgentState:
+                return {"messages": [llm.invoke(state["messages"])]}
 
-            return reply
+            return agent
         except Exception:
             pass
 
-    def reply(state: AgentState) -> AgentState:
+    def agent(state: AgentState) -> AgentState:
         last = state["messages"][-1].content
-        return {"messages": [AIMessage(content=f"eco (F1b, sem tools): {last}")]}
+        return {
+            "messages": [
+                AIMessage(content=f"eco (F2a, sem GROQ_API_KEY — tools não chamadas): {last}")
+            ]
+        }
 
-    return reply
+    return agent
+
+
+def _should_continue(state: AgentState) -> str:
+    """tools_condition: se o último AIMessage pediu tool, vai pra tools; senão fim."""
+    messages = state["messages"]
+    last = messages[-1]
+    if not last.tool_calls:
+        return "end"
+    return "continue"
 
 
 def build_graph():
-    """StateGraph(AgentState) com 1 nó `reply` → compile()."""
+    """StateGraph(AgentState): agent → (tools | end) → tools → agent."""
     graph = StateGraph(AgentState)
-    graph.add_node("reply", _make_reply_node())
-    graph.set_entry_point("reply")
-    graph.add_edge("reply", "__end__")
+    graph.add_node("agent", _make_agent_node())
+    graph.add_node("tools", ToolNode(TOOLS))
+    graph.set_entry_point("agent")
+    graph.add_conditional_edges(
+        "agent",
+        _should_continue,
+        {"continue": "tools", "end": "__end__"},
+    )
+    graph.add_edge("tools", "agent")
     return graph.compile()

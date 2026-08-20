@@ -3,6 +3,7 @@
 > F0b: pacote roda; agente depois. Zero UI — só CLI.
 > F1a: state tipado — `AgentState` com `messages` + `add_messages`.
 > F1b: grafo `from_scratch` roda via StateGraph — 1 nó `reply` (echo se sem `GROQ_API_KEY`, senão ChatGroq). `should_continue`/tools ficam pro F2.
+> F2a: tools do cenário **pesquisa** — `web_search` (ddgs/DuckDuckGo) + `format_brief`; grafo from_scratch com loop tool (llm ↔ ToolNode). Sem `GROQ_API_KEY` o nó `agent` ecoa e não chama tools (modo degradado documentado).
 
 Agente ReAct (LangGraph): não chuta — despacha por cenário.
 

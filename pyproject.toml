@@ -14,9 +14,8 @@ dependencies = [
     "langchain",
     "langchain-groq",
     "httpx",
-    # busca web: placeholder — Tavily (tavily-python) OU duckduckgo-search
-    # "tavily-python",
-    # "duckduckgo-search",
+    # busca web F2a: ddgs (DuckDuckGo)
+    "ddgs",
 ]
 
 [project.scripts]
