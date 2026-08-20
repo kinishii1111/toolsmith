@@ -1,38 +1,36 @@
-# ORDEM — tarefa/F4a
+# ORDEM — tarefa/F5a
 
 ## Objetivo
 
-Cenário **lead**: tools score + tag + draft reply; plugar no grafo; **ouro** numa tacada (msg crua → qualificado + resposta + tag).
+Versão **prebuilt** (`create_react_agent` ou equivalente atual LangGraph) para **comparar** com `from_scratch`. Mesmos tools do cenário. CLI flag `--motor scratch|prebuilt` (default scratch).
 
 ## Copiar de
 
-- Padrão `@tool` de `chamado/` / `pesquisa/`
-- `build_graph(cenario=...)` já troca TOOLS + system prompt
-- Regras ICP locais em dict/arquivo `tools/lead/regras.md` (orçamento, urgência, segmento)
+- https://langchain-ai.github.io/langgraph/how-tos/create-react-agent/
+- Docs atuais `langgraph.prebuilt` (nome pode ser `create_react_agent`)
+- Tools já em pesquisa/chamado/lead
 
 ## Fazer
 
-1. Tools `tools/lead/`:
-   - `score_lead(texto)` → 0–100 + motivos (heurística)
-   - `tag_lead(texto)` → tags tipo `quente|morno|frio`, `b2b|b2c`
-   - `draft_lead_reply(texto, score, tags)` → rascunho WhatsApp/e-mail curto
-2. System prompt lead: use as 3 tools; termine com `SCORE:` e `TAGS:`
-3. README: exemplo ouro lead
-4. Pesquisa + chamado intactos
+1. `graph_prebuilt.py`: `build_graph(cenario)` usando prebuilt + mesmos TOOLS/prompt do scratch
+2. CLI: `--motor {scratch,prebuilt}`; scratch = `graph_from_scratch`
+3. README: por que StateGraph from scratch vs prebuilt (2–4 linhas currículo)
+4. Sem UI/testes
 
 ## Não fazer
 
-- UI, CRM real, testes, merge main, prebuilt (F5)
+- UI, testes, merge main, Mermaid/demos (F5b)
 
 ## Pronto quando
 
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git checkout tarefa/F4a && git pull
-python3 -m toolsmith --cenario lead "Oi, tenho empresa de 50 funcionarios, preciso de proposta essa semana, orcamento ate 20k"
-# SCORE: … TAGS: … e rascunho util
+git checkout tarefa/F5a && git pull
+python3 -m toolsmith --motor prebuilt --cenario pesquisa "capital do Ceara em 1 frase"
+python3 -m toolsmith --motor scratch --cenario pesquisa "capital do Ceara em 1 frase"
+# ambos respondem sem traceback
 ```
 
 ## Tema
 
-Plantão lead — qualificar + responder.
+1 motor ensinado de 2 jeitos — comparar.
