@@ -21,7 +21,7 @@ def _load_env() -> None:
 
 def _sem_key() -> None:
     print(
-        "toolsmith: ouro pesquisa exige GROQ_API_KEY no ambiente (ver .env / README). "
+        "toolsmith: exige GROQ_API_KEY no ambiente (ver .env / README). "
         "Defina GROQ_API_KEY e rode de novo.",
         file=sys.stderr,
     )
@@ -48,7 +48,7 @@ def main() -> None:
     if not os.getenv("GROQ_API_KEY"):
         _sem_key()
 
-    graph = build_graph()
+    graph = build_graph(cenario=args.cenario)
     result = graph.invoke(
         {"messages": [HumanMessage(content=args.pergunta)]},
         config={"recursion_limit": 20},

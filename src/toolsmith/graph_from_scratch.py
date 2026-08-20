@@ -13,28 +13,47 @@ from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode
 
 from toolsmith.state import AgentState
+from toolsmith.tools.chamado import classify_ticket, draft_reply, search_kb
 from toolsmith.tools.pesquisa import format_brief, web_search
 
-TOOLS = [web_search, format_brief]
+TOOLS_PESQUISA = [web_search, format_brief]
+TOOLS_CHAMADO = [classify_ticket, search_kb, draft_reply]
+# compat: F2 usava TOOLS
+TOOLS = TOOLS_PESQUISA
 
-SYSTEM_PROMPT = (
+SYSTEM_PROMPT_PESQUISA = (
     "Plantão pesquisa — não invente fatos. Use as tools web_search/format_brief "
     "para levantar informação e responda citando as URLs (http/https) que as tools "
     "retornarem. Fonte vazia/stub deixa claro que a busca não trouxe resultado."
 )
+SYSTEM_PROMPT_CHAMADO = (
+    "Plantão chamado — triage + KB local. Use as tools classify_ticket/search_kb/draft_reply "
+    "para classificar o ticket, buscar trechos da KB em kb/*.md e rascunhar resposta. "
+    "Mencione severidade/categoria e cite o arquivo da KB usado."
+)
+# compat
+SYSTEM_PROMPT = SYSTEM_PROMPT_PESQUISA
 
 
-def _make_agent_node():
-    """Retorna nó `agent`. Prefere ChatGroq bind tools; senão eco (F2a sem key)."""
+def _get_tools_and_prompt(cenario: str):
+    c = (cenario or "pesquisa").lower()
+    if c == "chamado":
+        return TOOLS_CHAMADO, SYSTEM_PROMPT_CHAMADO
+    return TOOLS_PESQUISA, SYSTEM_PROMPT_PESQUISA
+
+
+def _make_agent_node(cenario: str = "pesquisa"):
+    """Retorna nó `agent`. Prefere ChatGroq bind tools; senão eco (sem key)."""
+    tools, prompt = _get_tools_and_prompt(cenario)
     key = os.getenv("GROQ_API_KEY")
     if key:
         try:
             from langchain_groq import ChatGroq
 
-            llm = ChatGroq(model="openai/gpt-oss-20b", api_key=key).bind_tools(TOOLS)
+            llm = ChatGroq(model="openai/gpt-oss-20b", api_key=key).bind_tools(tools)
 
             def agent(state: AgentState) -> AgentState:
-                msgs = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
+                msgs = [SystemMessage(content=prompt)] + state["messages"]
                 return {"messages": [llm.invoke(msgs)]}
 
             return agent
@@ -45,7 +64,7 @@ def _make_agent_node():
         last = state["messages"][-1].content
         return {
             "messages": [
-                AIMessage(content=f"eco (F2a, sem GROQ_API_KEY — tools não chamadas): {last}")
+                AIMessage(content=f"eco (sem GROQ_API_KEY — tools não chamadas): {last}")
             ]
         }
 
@@ -61,11 +80,15 @@ def _should_continue(state: AgentState) -> str:
     return "continue"
 
 
-def build_graph():
-    """StateGraph(AgentState): agent → (tools | end) → tools → agent."""
+def build_graph(cenario: str = "pesquisa"):
+    """StateGraph(AgentState): agent → (tools | end) → tools → agent.
+
+    Seleciona TOOLS + prompt conforme `cenario` (pesquisa|chamado).
+    """
+    tools, _ = _get_tools_and_prompt(cenario)
     graph = StateGraph(AgentState)
-    graph.add_node("agent", _make_agent_node())
-    graph.add_node("tools", ToolNode(TOOLS))
+    graph.add_node("agent", _make_agent_node(cenario))
+    graph.add_node("tools", ToolNode(tools))
     graph.set_entry_point("agent")
     graph.add_conditional_edges(
         "agent",
