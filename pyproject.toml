@@ -13,6 +13,7 @@ dependencies = [
     "langgraph",
     "langchain",
     "langchain-groq",
+    "langgraph-checkpoint-sqlite",
     "httpx",
     # busca web F2a: ddgs (DuckDuckGo)
     "ddgs",
