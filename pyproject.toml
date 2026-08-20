@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "toolsmith"
+version = "0.1.0"
+description = "Plantão de fatos — agente ReAct (LangGraph) que não chuta: despacha math, clima e busca antes de responder."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "langgraph",
+    "langchain",
+    "langchain-groq",
+    "httpx",
+    # busca web: placeholder — Tavily (tavily-python) OU duckduckgo-search
+    # "tavily-python",
+    # "duckduckgo-search",
+]
+
+[project.scripts]
+toolsmith = "toolsmith.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/toolsmith"]

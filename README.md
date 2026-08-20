@@ -19,3 +19,8 @@ python -m toolsmith "sua pergunta"
 ## Lema
 
 Copiar → preguiça → melhorar → ser esperto.
+
+## Referências (gabarito, não entrega)
+
+- [LangGraph quickstart](https://docs.langchain.com/oss/python/langgraph/quickstart)
+- [Template `langchain-ai/react-agent`](https://github.com/langchain-ai/react-agent)
