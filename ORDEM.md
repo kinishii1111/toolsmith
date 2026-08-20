@@ -1,47 +1,48 @@
-# ORDEM — tarefa/F0a
+# ORDEM — tarefa/F0b
 
 ## Objetivo
 
-Esqueleto de empacotamento + ignore + env de exemplo + README com o tema **Plantão de fatos**. Ainda sem código de agente.
+Pacote Python importável + `python -m toolsmith` imprimindo `ToolSmith F0 ok` (Plantão de fatos). Ainda sem agente/tools.
 
 ## Copiar de
 
-- Brief do job (estrutura alvo): `../../entrada/brief.md` (relativo ao job; ou peça ao Kin o path absoluto)
-- Tema: no job `../TEMA.md` — slogan **Plantão de fatos**, lema copiar/preguiça/melhorar/esperto
-- Pyproject mínimo moderno: docs Python packaging / qualquer `pyproject.toml` simples com `[project]` + `[build-system]` hatchling ou setuptools
-- Refs LangGraph (só pra citar no README, **não** implementar agora):
-  - https://docs.langchain.com/oss/python/langgraph/quickstart
-  - https://github.com/langchain-ai/react-agent
+- Layout do brief: `src/toolsmith/` com stubs (`__init__`, `__main__`, `cli`, `state`, graphs, `tools/*`)
+- Hatch já aponta `packages = ["src/toolsmith"]` no `pyproject.toml` (F0a)
+- Padrão `__main__.py` chama `cli.main`
 
 ## Fazer
 
-1. `pyproject.toml` com nome `toolsmith`, python >=3.11, deps declaradas (ainda podem ser só listadas):
-   - `langgraph`, `langchain`, `langchain-groq`, `httpx` (ou `requests`)
-   - placeholder busca: comentário Tavily **ou** `duckduckgo-search`
-2. `.env.example` com `GROQ_API_KEY=` vazio
-3. Garantir `.gitignore` cobre `.env`, venv, `__pycache__`
-4. README.md: o que é (Plantão de fatos), o que **não** é (não é Pokédex/chatbot), stack, setup stub, lema em 1 linha
-5. Nada em `src/` nesta tarefa (isso é **F0b**)
+1. Criar árvore:
+   ```
+   src/toolsmith/
+     __init__.py
+     __main__.py
+     cli.py          # main() printa ToolSmith F0 ok
+     state.py        # stub (pass ou docstring)
+     graph_from_scratch.py  # stub
+     graph_prebuilt.py      # stub
+     tools/
+       __init__.py
+       math.py / weather.py / search.py  # stubs
+   ```
+2. `diagrams/.gitkeep` e `examples/.gitkeep`
+3. README: uma linha “F0b: pacote roda; agente ainda não”
+4. Não implementar LangGraph/tools de verdade
 
 ## Não fazer
 
-- Sem `src/`, sem grafo, sem tools, sem testes, sem UI
-- Sem chave real no repo
-- Sem inventar pasta `utils/` / `services/`
+- Sem LLM, sem HTTP, sem deps novas no pyproject
+- Sem testes, UI, merge main
+- Sem pasta utils/services
 
 ## Pronto quando
 
-Kin vê no repo:
-
-- `pyproject.toml`, `.env.example`, `.gitignore`, `README.md`
-- README menciona **Plantão de fatos** e o lema
-
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git status
-ls pyproject.toml .env.example README.md
+pip install -e .     # se ainda não
+python -m toolsmith  # → ToolSmith F0 ok
 ```
 
 ## Tema
 
-Plantão de fatos — despachante que não chuta.
+Plantão de fatos — esqueleto só; despacho vem depois.
