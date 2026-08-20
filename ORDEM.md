@@ -1,38 +1,40 @@
-# ORDEM — tarefa/F2b
+# ORDEM — tarefa/F3a
 
 ## Objetivo
 
-**Query de ouro do cenário pesquisa:** pergunta → `web_search` (e se fizer sentido `format_brief`) → resposta final com **fontes/links** visíveis. Loop ReAct de verdade (precisa `GROQ_API_KEY`).
+Kit **chamado**: tools locais (classificar + buscar KB + rascunhar) plugadas no mesmo grafo, selecionáveis via `--cenario chamado`. Ainda sem ouro completo (F3b).
 
 ## Copiar de
 
-- Grafo F2a já tem ToolNode + `should_continue`
-- Refs ReAct / tool calling LangGraph (mesmas da F2a)
-- System prompt curto: “Plantão pesquisa — não invente; cite links das tools”
+- Padrão `@tool` + ToolNode de `tools/pesquisa/`
+- Grafo: trocar TOOLS conforme `cenario` (CLI passa cenario → `build_graph(cenario=...)`)
+- KB: arquivos markdown em `src/toolsmith/tools/chamado/kb/*.md` (2–3 FAQs inventadas, curtas)
 
 ## Fazer
 
-1. Prompt de sistema / mensagem inicial no `agent` (cenário pesquisa) pedindo citação das URLs retornadas por `web_search`
-2. `recursion_limit` razoável no `invoke` (CLI)
-3. CLI imprime a resposta final (última AIMessage sem tool_calls)
-4. README: como criar `.env` + exemplo de ouro
-5. Sem chamado/lead ainda
-6. Sem `GROQ_API_KEY`: CLI deve falhar com mensagem clara (exit ≠ 0) — não eco silencioso no modo ouro
+1. Tools em `tools/chamado/`:
+   - `classify_ticket(texto)` → severidade/categoria (heurística local ok)
+   - `search_kb(query)` → trechos dos md em `kb/`
+   - `draft_reply(contexto, tom="objetivo")` → rascunho local (template string ok; sem exigir LLM na tool)
+2. `build_graph(cenario: str)` escolhe TOOLS + system prompt do cenário
+3. CLI passa `args.cenario` pro grafo
+4. README: linha F3a + exemplo ticket
+5. Manter pesquisa funcionando
 
 ## Não fazer
 
-- UI, testes, merge main, outros cenários
+- UI, testes, lead, merge main, RAG vetorial
 
 ## Pronto quando
 
 ```bash
 cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-git checkout tarefa/F2b && git pull
-# exige .env com GROQ_API_KEY
-python3 -m toolsmith --cenario pesquisa "O que e LangGraph? brief curto com fontes"
-# resposta cita http/https das tools; NAO so eco
+git checkout tarefa/F3a && git pull
+# com .env
+python3 -m toolsmith --cenario chamado "Cliente diz que o login nao funciona desde ontem e esta com pressa"
+# deve usar tools de chamado (nao so eco); idealmente menciona classify/kb no rastro ou na resposta
 ```
 
 ## Tema
 
-Plantão pesquisa — ouro com fontes.
+Plantão chamado — triage + KB local.
