@@ -27,9 +27,12 @@ SYSTEM_PROMPT_PESQUISA = (
     "retornarem. Fonte vazia/stub deixa claro que a busca não trouxe resultado."
 )
 SYSTEM_PROMPT_CHAMADO = (
-    "Plantão chamado — triage + KB local. Use as tools classify_ticket/search_kb/draft_reply "
-    "para classificar o ticket, buscar trechos da KB em kb/*.md e rascunhar resposta. "
-    "Mencione severidade/categoria e cite o arquivo da KB usado."
+    "Plantão chamado — não invente; use tools. Pipeline obrigatório: classify_ticket para severidade/categoria, "
+    "search_kb para trechos da KB em kb/*.md, draft_reply para rascunhar resposta. "
+    "Na resposta final mencione severidade, cite o trecho/arquivo da KB usado e traga o rascunho. "
+    "Termine obrigatoriamente com linha final `ESCALAR: sim|nao — motivo` "
+    "(ex: `ESCALAR: sim — alta+sem reset ha >24h, exige N2` ou `ESCALAR: nao — contornável via KB`). "
+    "Sem match na KB, diga que não há trecho direto."
 )
 # compat
 SYSTEM_PROMPT = SYSTEM_PROMPT_PESQUISA
