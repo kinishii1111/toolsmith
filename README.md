@@ -1,6 +1,7 @@
 # ToolSmith — Plantão de fatos — 3 plantões, 1 motor
 
 > F0b: pacote roda; agente depois. Zero UI — só CLI.
+> F1a: state tipado — `AgentState` com `messages` + `add_messages`.
 
 Agente ReAct (LangGraph): não chuta — despacha por cenário.
 
