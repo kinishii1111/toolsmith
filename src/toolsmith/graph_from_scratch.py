@@ -98,8 +98,8 @@ def _should_continue(state: AgentState) -> str:
 
 
 def _should_summarize(state: AgentState) -> str:
-    """Condicional do nó summarize: resume ou segue pro agent."""
-    return "summarize_node" if should_summarize(state) else "agent"
+    """Condicional do entry: resume (summarize_node) ou vai direto pro agent."""
+    return "summarize" if should_summarize(state) else "agent"
 
 
 def build_graph(cenario: str = "pesquisa", checkpointer=None):
@@ -117,12 +117,11 @@ def build_graph(cenario: str = "pesquisa", checkpointer=None):
     graph.add_node("summarize", summarize_node)
     graph.add_node("agent", _make_agent_node(cenario))
     graph.add_node("tools", ToolNode(tools))
-    graph.set_entry_point("summarize")
-    graph.add_conditional_edges(
-        "summarize",
+    graph.set_conditional_entry_point(
         _should_summarize,
-        {"summarize_node": "summarize", "agent": "agent"},
+        {"summarize": "summarize", "agent": "agent"},
     )
+    graph.add_edge("summarize", "agent")
     graph.add_conditional_edges(
         "agent",
         _should_continue,
