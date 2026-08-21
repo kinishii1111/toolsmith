@@ -1,51 +1,43 @@
-# ORDEM — tarefa/r2-cli
+# ORDEM — tarefa/r2-cli-fix
 
 ## Agente
 opencode
 
 ## Objetivo
-CLI Recall: `--thread`, stream, `threads` e `inspect`. Grafo já tem checkpointer.
+Corrigir review: `python -m toolsmith "ping"` quebrou (argparse trata "ping" como subcomando). Manter `threads`/`inspect`/`chat` e restaurar legado.
 
 ## Copiar de
-- `src/toolsmith/cli.py` atual
-- `src/toolsmith/memory.py` DEFAULT_DB
-- Brief: `python -m toolsmith --thread kin "..."` + subcomandos threads/inspect
+- Erro: `invalid choice: 'ping' (choose from 'threads', 'inspect', 'chat')`
+- Queremos: `toolsmith "pergunta" --thread kin` E `toolsmith chat "pergunta" --thread kin` E `toolsmith threads` / `inspect`
 
 ## Fazer
-1. Em `cli.py`:
-   - Flag `--thread ID` (default `default`) → `config={"configurable":{"thread_id": ID}, "recursion_limit": 20}`
-   - Em invoke/stream: passar config; carregar histórico via checkpointer (invoke com messages novas só — LangGraph mergeia)
-   - Streaming: se stdout TTY ou flag `--stream`, usar `graph.stream(..., stream_mode="messages")` e printar tokens/chunks; senão `invoke`
-   - Subcomando ou modo: `threads` lista thread_ids do sqlite (consultar API SqliteSaver / sql na DEFAULT_DB)
-   - `inspect THREAD` imprime último checkpoint (summary + últimas msgs resumidas)
-   - Manter `--cenario` e `--motor`
-2. `.gitignore` já ignora sqlite — ok
-3. NÃO reescrever graphs (só importar build_*)
+1. Só `src/toolsmith/cli.py`:
+   - Se argv[1] ∈ {threads, inspect, chat} → subparsers (como agora)
+   - Senão → modo legado/chat: flags `--thread`, `--stream`, `--cenario`, `--motor` + pergunta posicional (default ping)
+   - Uma forma simples: pré-parse / se primeiro arg não é comando conhecido, inserir `chat` no argv antes do parse
+2. Garantir: sem GROQ_API_KEY no chat → exit 1 mensagem clara; `threads`/`inspect` sem key ok
+3. Commit + push mesma branch
 
 ## Arquivos permitidos
 - src/toolsmith/cli.py
 - ORDEM.md
-- NÃO abrir mais nada (ler memory.py ok sem editar)
 
 ## Não fazer
-- Sem UI / testes / merge main / README grande
-- Sem Postgres
+- Sem merge main / README / graphs
 
 ## Ownership
 - src/toolsmith/cli.py
 
 ## Pronto quando
 ```bash
-cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith
-rm -f /tmp/recall-test.sqlite
-PYTHONPATH=src TOOLSMITH_CHECKPOINT=/tmp/recall-test.sqlite python3 -c "
-# se cli não ler env, use default data/ — ok testar --help
-import toolsmith.cli as c
-print('cli_ok', hasattr(c,'main'))
-"
+cd /home/kin/Documents/estudo/langgraph-portfolio/trabalho/toolsmith-wt-tarefa-r2-cli
 PYTHONPATH=src python3 -m toolsmith --help
+PYTHONPATH=src python3 -m toolsmith chat --help | grep -q thread
+# legado não pode crashar no parse:
+PYTHONPATH=src python3 -c "import sys; sys.argv=['toolsmith','ping','--thread','t']; from toolsmith.cli import main" 2>&1 | head -3
+# (pode pedir GROQ_API_KEY — OK; NÃO pode 'invalid choice: ping')
+GROQ_API_KEY= PYTHONPATH=src python3 -m toolsmith ping 2>&1 | grep -v 'invalid choice' | head -3
 ```
-(Deve mostrar --thread e/ou threads/inspect sem crash)
 
 ## Tema
-Recall N2 — CLI thread + stream
+Bounce: CLI legado + subcomandos
