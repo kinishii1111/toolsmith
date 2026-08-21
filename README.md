@@ -72,14 +72,16 @@ Sem `GROQ_API_KEY` o CLI sai com erro claro (exit ≠ 0) — não ecoa silencios
 ## Arquitetura — loop agent ↔ tools → end
 
 ```
-START → agent (ChatGroq bind_tools + SystemPrompt por cenário)
+START → entry { should_summarize? } → [summarize (opcional)] → agent (ChatGroq bind_tools + SystemPrompt por cenário)
        → should_continue { tool_calls? } → tools (ToolNode) → agent → ... → END
        invoke {messages:[HumanMessage]} recursion_limit 20 → última AIMessage sem tool_calls
+       compile(checkpointer=SqliteSaver) → memória por thread_id (recall entre sessões)
 ```
 
-State: `AgentState` (`messages: Annotated[list, add_messages]`) — um state para 3 Plantões.
+State: `AgentState` (`messages: Annotated[list, add_messages]` + `summary`) — um state para 3 Plantões.
 Diagrama Mermaid: `diagrams/graph.mmd` (renderize no GitHub/Mermaid Live).
 Demos ouro por cenário: `examples/demo.md` (pesquisa/chamado/lead — pergunta → tools → trecho resposta).
+Recall 2 sessões: `examples/session_a.md` (thread `kin-nome`) e `examples/session_b.md` (thread `alice` isolada).
 
 ## Setup — .env e --cenario / --motor
 
@@ -106,15 +108,48 @@ Sem `GROQ_API_KEY` o CLI sai com erro claro (`exit != 0`) — não ecoa silencio
 
 Mesmos `TOOLS` e `SYSTEM_PROMPT` por `--cenario` (`_get_tools_and_prompt`): pesquisa (`web_search`/`format_brief`), chamado (`classify_ticket`/`search_kb`/`draft_reply` + `kb/*.md`), lead (`score_lead`/`tag_lead`/`draft_lead_reply` + `tools/lead/regras.md`). Flag `--motor scratch|prebuilt` troca só o builder.
 
+## Recall — memória por `thread_id` (SqliteSaver)
+
+Memória curta de conversa entre chamadas: o grafo é compilado com um **checkpointer**
+(`SqliteSaver` → `data/checkpoints.sqlite`), e cada pergunta carrega o `thread_id`.
+Mesma thread continua a conversa; threads diferentes são isoladas.
+
+- **`--thread ID`** no `chat`: id de memória (default: `default`). Mesmo id = mesma conversa.
+- **`threads`**: lista os `thread_id` distintos já gravados no sqlite.
+- **`inspect THREAD`**: imprime o último checkpoint da thread (summary + últimas msgs).
+- **`--stream`**: força streaming token-a-token (padrão quando stdout é TTY).
+
+**summarize (opcional)**: quando `len(messages) > 12`, o nó `summarize` compacta as
+mensagens antigas em `summary` e mantém as 4 últimas intactas (`should_summarize`/`summarize_node`).
+Sem `GROQ_API_KEY` usa junção truncada; com key tenta 1 call ChatGroq (`openai/gpt-oss-20b`).
+O nó `summarize` existe **só no motor `scratch`** (o `prebuilt` via `create_react_agent` fica só com memória do checkpointer).
+
+**Como testar 2 sessões** (threads isoladas) — ouro recall:
+
+```bash
+python3 -m toolsmith chat --thread kin-nome "Ola! Qual seu nome?"   # sessão A se apresenta
+python3 -m toolsmith chat --thread kin-nome "Meu nome e Kin"
+python3 -m toolsmith chat --thread kin-nome "Qual meu nome mesmo?"  # lembra: Kin
+python3 -m toolsmith chat --thread alice   "Ola! Qual seu nome?"    # sessão B, thread nova
+python3 -m toolsmith chat --thread alice   "Qual o nome que kin-nome aprendeu?"  # não sabe → isolada
+python3 -m toolsmith inspect kin-nome
+python3 -m toolsmith inspect alice
+python3 -m toolsmith threads
+```
+
+Passo a passo com o que esperar em cada comando: `examples/session_a.md` e `examples/session_b.md`.
+DB: `data/checkpoints.sqlite`; honra `TOOLSMITH_CHECKPOINT` (env) para apontar outro arquivo.
+
+
 ## Fora de escopo — Nível 2+
 
-Nível 1 (currículo) fecha aqui: diagrama + `examples/demo.md` + README PT+EN. Fica fora:
+Nível 2 (currículo) fecha aqui: diagrama + `examples/demo.md` + recall (`session_a`/`session_b`) + README PT+EN. Fica fora:
 
-- UI (Streamlit/Gradio), testes automatizados, `merge main`, deploy, auth, persistência, memória longa, multi-agente, HITL, avaliação/RAG avançado, guardrails.
+- UI (Streamlit/Gradio), testes automatizados, `merge main`, deploy, auth, Postgres, HITL, Store de memória de longo prazo, multi-agente, avaliação/RAG avançado, guardrails.
 
 ## Currículo — 1 linha
 
-PT: Agente ReAct LangGraph (Groq) — 3 Plantões (pesquisa/chamado/lead), 1 motor em 2 jeitos (`scratch`/`prebuilt`), loop `agent ↔ tools → end` com `--cenario`/`--motor` e ouro por cenário. · EN: ReAct agent on LangGraph (Groq) — 3 shifts, 1 engine (scratch vs prebuilt), `agent ↔ tools → end` loop with `--cenario`/`--motor` and golden traces per scenario.
+PT: Agente ReAct LangGraph (Groq) — 3 Plantões (pesquisa/chamado/lead), 1 motor em 2 jeitos (`scratch`/`prebuilt`), loop `agent ↔ tools → end` com `--cenario`/`--motor`, ouro por cenário e **recall por `thread_id`** (SqliteSaver + summarize). · EN: ReAct agent on LangGraph (Groq) — 3 shifts, 1 engine (scratch vs prebuilt), `agent ↔ tools → end` loop with `--cenario`/`--motor`, golden traces per scenario, and **thread recall** (SqliteSaver + summarize).
 
 ## Lema
 

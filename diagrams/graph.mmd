@@ -1,8 +1,11 @@
 %% ToolSmith — Plantão de fatos — 3 plantões, 1 motor
-%% StateGraph: AgentState { messages: Annotated[list, add_messages] }
+%% StateGraph: AgentState { messages: Annotated[list, add_messages], summary: str }
 %% Referência: LangGraph quickstart + template langchain-ai/react-agent
 flowchart TD
-    START([START]) --> agent
+    START([START]) --> entry{"entry<br/>should_summarize<br/>len(messages) > 12?"}
+    entry -->|summarize| summarize["summarize<br/>(opcional)<br/>compacta antigas em summary"]
+    entry -->|agent| agent
+    summarize --> agent
 
     subgraph loop["ReAct loop — agent ↔ tools"]
         agent["agent<br/>(ChatGroq bind_tools<br/>+ SystemPrompt por cenário)"]
@@ -14,6 +17,13 @@ flowchart TD
     end
 
     should_continue -->|end| END
+
+    %% Memória por thread_id (SqliteSaver) — recall entre sessões
+    subgraph mem["Memória — checkpointer (SqliteSaver)"]
+        cp["compile(checkpointer)<br/>thread_id → state<br/>data/checkpoints.sqlite"]
+    end
+    agent -.saved each step.-> cp
+    summarize -.salva summary.-> cp
 
     classDef kit fill:#f6f6f6,stroke:#333,stroke-dasharray: 4 4
     subgraph kits["Kits por --cenario"]
