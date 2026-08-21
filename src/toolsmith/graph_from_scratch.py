@@ -12,7 +12,9 @@ from langchain_core.messages import AIMessage, SystemMessage
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode
 
+from toolsmith.memory import get_checkpointer
 from toolsmith.state import AgentState
+from toolsmith.summarize import should_summarize, summarize_node
 from toolsmith.tools.chamado import classify_ticket, draft_reply, search_kb
 from toolsmith.tools.lead import draft_lead_reply, score_lead, tag_lead
 from toolsmith.tools.pesquisa import format_brief, web_search
@@ -95,20 +97,36 @@ def _should_continue(state: AgentState) -> str:
     return "continue"
 
 
-def build_graph(cenario: str = "pesquisa"):
-    """StateGraph(AgentState): agent → (tools | end) → tools → agent.
+def _should_summarize(state: AgentState) -> str:
+    """Condicional do nó summarize: resume ou segue pro agent."""
+    return "summarize_node" if should_summarize(state) else "agent"
+
+
+def build_graph(cenario: str = "pesquisa", checkpointer=None):
+    """StateGraph(AgentState): summarize → agent → (tools | end) → tools → agent.
 
     Seleciona TOOLS + prompt conforme `cenario` (pesquisa|chamado|lead).
+    `checkpointer` None ⇒ usa `get_checkpointer()` (SqliteSaver) para memória
+    por thread_id. Nó `summarize` compacta histórico antes do agent quando
+    `should_summarize` retornar True.
     """
+    if checkpointer is None:
+        checkpointer = get_checkpointer()
     tools, _ = _get_tools_and_prompt(cenario)
     graph = StateGraph(AgentState)
+    graph.add_node("summarize", summarize_node)
     graph.add_node("agent", _make_agent_node(cenario))
     graph.add_node("tools", ToolNode(tools))
-    graph.set_entry_point("agent")
+    graph.set_entry_point("summarize")
+    graph.add_conditional_edges(
+        "summarize",
+        _should_summarize,
+        {"summarize_node": "summarize", "agent": "agent"},
+    )
     graph.add_conditional_edges(
         "agent",
         _should_continue,
         {"continue": "tools", "end": "__end__"},
     )
     graph.add_edge("tools", "agent")
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
