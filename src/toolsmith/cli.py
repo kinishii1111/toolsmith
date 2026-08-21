@@ -122,8 +122,14 @@ def _run_stream(graph, thread: str, pergunta: str) -> None:
     print("".join(out) if out else _final_answer(graph.get_state(config).values))
 
 
+_COMANDOS = {"threads", "inspect", "chat"}
+
+
 def main() -> None:
     _load_env()
+    argv = sys.argv[1:]
+    if argv and argv[0] not in _COMANDOS and not argv[0].startswith("-"):
+        sys.argv = [sys.argv[0], "chat", *argv]
     parser = argparse.ArgumentParser(prog="toolsmith")
     sub = parser.add_subparsers(dest="cmd", metavar="<comando>")
 
